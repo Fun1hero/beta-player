@@ -23,8 +23,8 @@ type Game struct {
 var p Player
 var g Game
 
-var toPN string = "toP"     // "toP + player number" when we (I) understand how we get that
-var fromPN string = "fromP" // same here "fromP + player number"
+var toPN string = "/tmp/toP"     // "toP + player number" when we (I) understand how we get that
+var fromPN string = "/tmp/fromP" // same here "fromP + player number"
 
 type fn func(string)
 
