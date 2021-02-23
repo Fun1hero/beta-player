@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -47,7 +48,7 @@ var functions = map[string]fn{
 }
 
 func (gm *Game) playerNO(args string) {
-	gm.totalPlayers = int(args[len(args)-1])
+	gm.totalPlayers, _ = strconv.Atoi(args[len(args)-1:])
 	gm.activePlayers = gm.totalPlayers
 }
 
@@ -67,4 +68,6 @@ func main() {
 	toPN += playerNumber
 	fromPN += playerNumber
 	fmt.Println(toPN, fromPN)
+	selectedFunction(functions["01"], "01:03")
+	fmt.Println(g.totalPlayers)
 }
