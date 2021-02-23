@@ -1,6 +1,11 @@
 package main
 
-import "strings"
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
+)
 
 // Player struct
 type Player struct {
@@ -55,5 +60,11 @@ func (gm *Game) leftoverTokens(args string) {
 }
 
 func main() {
-
+	fmt.Println("What player number are you: ")
+	reader := bufio.NewReader(os.Stdin)
+	playerNumber, _ := reader.ReadString('\n')
+	playerNumber = strings.Replace(playerNumber, "\n", "", -1)
+	toPN += playerNumber
+	fromPN += playerNumber
+	fmt.Println(toPN, fromPN)
 }
