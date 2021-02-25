@@ -43,8 +43,8 @@ var functions = map[string]fn{
 	// "07": toBeImplemented,
 	// "08": toBeImplemented,
 	// "09": toBeImplemented,
-	// "10": toBeImplemented,
-	// "11": toBeImplemented,
+	"10": tokenInfoSwap,
+	"11": remainingWinner,
 }
 
 func (gm *Game) playerNO(args string) {
@@ -58,6 +58,23 @@ func (pl *Player) readMyTerrain(args string) {
 
 func (gm *Game) leftoverTokens(args string) {
 	gm.leftTokens = strings.Split(args[3:], ",")
+}
+
+func tokenInfoSwap(args string) {
+	message := strings.Split(args[3:], ",")
+
+	if string(message[0][1]) == strconv.Itoa(p.no) {
+		fmt.Printf("You let %s know you got a token %s\n", message[1], message[2])
+	} else {
+		fmt.Printf("You acknowledge %s got a token %s\n", message[0], message[2])
+	}
+}
+
+func remainingWinner(args string) {
+	message := strings.Split(args[3:], ",")
+
+	fmt.Printf("%s wins as the only remaining player. All others have guessed incorrectly and been disqualified. The treasures are located at %s and %s\n",
+		message[0], message[1], message[2])
 }
 
 // Reads from "toPN" named pipe
