@@ -60,6 +60,37 @@ func (gm *Game) leftoverTokens(args string) {
 	gm.leftTokens = strings.Split(args[3:], ",")
 }
 
+// Reads from "toPN" named pipe
+func readFromPipe(fd *os.File, err error) string {
+	if err != nil {
+		fmt.Errorf(err.Error())
+	}
+	// var buff bytes.Buffer
+	buff := make([]byte, 1024)
+	n, err := fd.Read(buff)
+	for n == 0 {
+		n, err = fd.Read(buff)
+	}
+	if err != nil {
+		fmt.Errorf(err.Error())
+	}
+	if len(buff) > 0 {
+		return string(buff)
+	}
+	if err != nil {
+		fmt.Errorf(err.Error())
+	}
+	return ""
+}
+
+// Writes to "fromPN" named pipe
+func writeToPipe(fd1 *os.File, err1 error, args string) {
+	if err1 != nil {
+		fmt.Errorf(err1.Error())
+	}
+	fd1.Write([]byte(args))
+}
+
 func main() {
 	fmt.Println("What player number are you: ")
 	reader := bufio.NewReader(os.Stdin)
@@ -68,6 +99,13 @@ func main() {
 	toPN += playerNumber
 	fromPN += playerNumber
 	fmt.Println(toPN, fromPN)
-	selectedFunction(functions["01"], "01:03")
-	fmt.Println(g.totalPlayers)
+
+	fd, err := os.OpenFile(toPN, os.O_RDONLY, os.ModeNamedPipe) // opens toPN named pipe
+	fd1, err1 := os.OpenFile(fromPN, os.O_RDWR, 0600)           // opens fromPN named pipe
+	for i := 0; i < 3; i++ {                                    // reads 3 times
+		fmt.Println(readFromPipe(fd, err))
+	}
+	writeToPipe(fd1, err1, "Hello") // writes 1 time
+	fd.Close()
+	fd1.Close()
 }
