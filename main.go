@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -88,6 +89,7 @@ func writeToPipe(fd1 *os.File, err1 error, args string) {
 	if err1 != nil {
 		fmt.Errorf(err1.Error())
 	}
+	fmt.Println("string-"+args)
 	fd1.Write([]byte(args))
 }
 
@@ -96,16 +98,74 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 	playerNumber, _ := reader.ReadString('\n')
 	playerNumber = strings.Replace(playerNumber, "\n", "", -1)
+	fmt.Println()
 	toPN += playerNumber
 	fromPN += playerNumber
 	fmt.Println(toPN, fromPN)
 
 	fd, err := os.OpenFile(toPN, os.O_RDONLY, os.ModeNamedPipe) // opens toPN named pipe
 	fd1, err1 := os.OpenFile(fromPN, os.O_RDWR, 0600)           // opens fromPN named pipe
-	for i := 0; i < 3; i++ {                                    // reads 3 times
-		fmt.Println(readFromPipe(fd, err))
+	//for i := 0; i < 3; i++ {                           // reads 3 times
+		input :=readFromPipe(fd, err)
+		
+	//}
+	if err1 != nil {
+		log.Fatal(err)
 	}
-	writeToPipe(fd1, err1, "Hello") // writes 1 time
+
+	fmt.Println("Do you want to guess? Answer with Y or N: ")
+
+	var Response string
+	fmt.Scanf("%s", &Response)
+
+	if Response == "Y" {
+
+
+
+		var first_token string
+		var second_token string
+
+		fmt.Println("Choose first token: ")
+		fmt.Scanf("%s", &first_token)
+
+		fmt.Println("Choose second token: ")
+		fmt.Scanf("%s", &second_token)
+
+		writeToPipe(fd1, err1, "07:P"+playerNumber+","+first_token+","+second_token) // writes 1 time
+
+
+	} else {
+	input2 := strings.SplitAfter(input, "\n")
+	fmt.Print(input2)
+	for i := 0; i < len(input2)-1; i++ {
+		fmt.Println(i)
+		stringSlice := strings.Split(input2[i], ":")
+		stringSlice2 := strings.Split(stringSlice[1], ",")
+		if stringSlice[0]=="04" {
+			fmt.Println("Choose any two dice options from the following or choose A")
+			for j :=0;j<len(stringSlice2);j++{
+             fmt.Println(stringSlice2[j])
+			}
+		}
+	}
+	var Dice1 string
+	fmt.Println("Choose first dice option")
+	fmt.Scanf("%s", &Dice1)
+
+		var Dice2 string	
+         fmt.Println("Choose second dice option")
+		fmt.Scanf("%s", &Dice2)
+
+		var Terrain string	
+		var Player string	
+
+		fmt.Println("Choose Terrian")
+		fmt.Scanf("%s", &Terrain)
+		fmt.Println("Choose Player that you want to interrogate")
+		fmt.Scanf("%s", &Player)
+
+		writeToPipe(fd1, err1, "05:"+Dice1+","+Dice2+","+Terrain+",P"+Player) // writes 1 time
+}
 	fd.Close()
 	fd1.Close()
 }
