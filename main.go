@@ -40,8 +40,8 @@ var functions = map[string]  fn {
 	"05": chooseDice,
 	"06": SendInterrogation,
 	//"07": tobeImplemented,
-//	"08": tobeImplemented,
-//"09": tobeImplemented,
+      //"08": tobeImplemented,
+       //"09": tobeImplemented,
 	 "10": tokenInfoSwap,
 	 "11": remainingWinner,
 }
