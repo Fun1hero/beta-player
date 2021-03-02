@@ -40,8 +40,8 @@ var functions = map[string]  fn {
 	"05": chooseDice,
 	"06": SendInterrogation,
 	//"07": tobeImplemented,
-      //"08": tobeImplemented,
-       //"09": tobeImplemented,
+//	"08": tobeImplemented,
+//"09": tobeImplemented,
 	 "10": tokenInfoSwap,
 	 "11": remainingWinner,
 }
@@ -89,7 +89,7 @@ func playerTurn(args string) string{
 		stringSlice2 := strings.Split(stringSlice[1], ",")
 
 		fmt.Println("Choose any two dice options from the following or choose A")
-			for j :=0;j<len(stringSlice2);j++{
+			for j :=1;j<len(stringSlice2);j++{
              fmt.Println(stringSlice2[j])
 			}
 	return ""
