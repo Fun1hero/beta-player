@@ -41,7 +41,7 @@ var functions = map[string]  fn {
 	// "05": toBeImplemented,
 	// "06": toBeImplemented,
 	"07": guessTokens,
-	"08": treasuresFound,
+	"08": guessCorrect,
 	"09": guessIncorrect,
 	"10": tokenInfoSwap,
 	"11": remainingWinner,
@@ -94,13 +94,23 @@ fmt.Println("fromPn-"+fromPN)
 		return temp
 }
 
+func guessCorrect(args string) string{
+	stringSlice := strings.Split(args, ":")
+		stringSlice2 := strings.Split(stringSlice[1], ",")
+		fmt.Printf("Player %s is correct! They have won the game.\n",
+		stringSlice2[0])
+		fmt.Printf("The treasures were located at %s and %s.\n",
+		stringSlice2[1],stringSlice2[2])
+	return ""
+}
+
 func guessIncorrect(args string) string {
 	message := strings.Split(args, ":")
-
 	fmt.Printf("Player %s is submitting a guess at the treasure locations!. Player %s was wrong. They are now disqualified from winning.\n",
 		message[1],message[1])
 		return ""
 }
+
 // Reads from "toPN" named pipe
 func readFromPipe(fd *os.File, err error) string {
 	if err != nil {
