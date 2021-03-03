@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -28,8 +29,8 @@ var fromPN string = "/tmp/fromP" // same here "fromP + player number"
 
 type fn func(string) string
 
-func selectedFunction(f fn, val string) { // selectedFunction provides functionality to call specific function by its id [:2] of args string
-	f(val)
+func selectedFunction(f fn, val string) string { // selectedFunction provides functionality to call specific function by its id [:2] of args string
+	return f(val)
 }
 
 var functions = map[string]fn{
@@ -157,15 +158,11 @@ func guessIncorrect(args string) string {
 }
 
 // Reads from "toPN" named pipe
-func readFromPipe(fd *os.File, err error) string {
-	if err != nil {
-		fmt.Errorf(err.Error())
-	}
-	// var buff bytes.Buffer
+func readFromPipe(fd *os.File) string {
 	buff := make([]byte, 1024)
-	n, err := fd.Read(buff)
-	for n == 0 {
-		n, err = fd.Read(buff)
+	_, err := fd.Read(buff)
+	if err == io.EOF {
+		return "exit"
 	}
 	if err != nil {
 		fmt.Errorf(err.Error())
@@ -180,10 +177,7 @@ func readFromPipe(fd *os.File, err error) string {
 }
 
 // Writes to "fromPN" named pipe
-func writeToPipe(fd1 *os.File, err1 error, args string) {
-	if err1 != nil {
-		fmt.Errorf(err1.Error())
-	}
+func writeToPipe(fd1 *os.File, args string) {
 	fd1.Write([]byte(args))
 }
 
@@ -197,11 +191,21 @@ func main() {
 	fmt.Println(toPN, fromPN)
 
 	fd, err := os.OpenFile(toPN, os.O_RDONLY, os.ModeNamedPipe) // opens toPN named pipe
-	fd1, err1 := os.OpenFile(fromPN, os.O_RDWR, 0600)           // opens fromPN named pipe
-	for i := 0; i < 3; i++ {                                    // reads 3 times
-		fmt.Println(readFromPipe(fd, err))
+	if err != nil {
+		fmt.Errorf(err.Error())
 	}
-	writeToPipe(fd1, err1, "Hello") // writes 1 time
-	fd.Close()
-	fd1.Close()
+	fd1, err1 := os.OpenFile(fromPN, os.O_RDWR, 0600) // opens fromPN named pipe
+	if err1 != nil {
+		fmt.Errorf(err1.Error())
+	}
+	for {
+		serverSaid := readFromPipe(fd)
+		if serverSaid == "exit" {
+			break
+		}
+		playerReply := selectedFunction(functions[serverSaid[:2]], serverSaid)
+		if playerReply != "" {
+			writeToPipe(fd1, playerReply)
+		}
+	}
 }
