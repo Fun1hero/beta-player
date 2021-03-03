@@ -158,9 +158,8 @@ func guessIncorrect(args string) string {
 }
 
 // Reads from "toPN" named pipe
-func readFromPipe(fd *os.File) string {
-	buff := make([]byte, 1024)
-	_, err := fd.Read(buff)
+func readFromPipe(fd *os.File, rd *bufio.Reader) string {
+	buff, err := rd.ReadString('\n')
 	if err == io.EOF {
 		return "exit"
 	}
@@ -168,7 +167,7 @@ func readFromPipe(fd *os.File) string {
 		fmt.Errorf(err.Error())
 	}
 	if len(buff) > 0 {
-		return string(buff)
+		return buff
 	}
 	if err != nil {
 		fmt.Errorf(err.Error())
@@ -194,12 +193,15 @@ func main() {
 	if err != nil {
 		fmt.Errorf(err.Error())
 	}
+	rd := bufio.NewReader(fd)
+
 	fd1, err1 := os.OpenFile(fromPN, os.O_RDWR, 0600) // opens fromPN named pipe
 	if err1 != nil {
 		fmt.Errorf(err1.Error())
 	}
+
 	for {
-		serverSaid := readFromPipe(fd)
+		serverSaid := readFromPipe(fd, rd)
 		if serverSaid == "exit" {
 			break
 		}
