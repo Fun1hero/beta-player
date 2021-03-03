@@ -32,18 +32,18 @@ func selectedFunction(f fn, val string) { // selectedFunction provides functiona
 	f(val)
 }
 
-var functions = map[string]  fn {
+var functions = map[string] fn {
 	"01": g.playerNO,
 	"02": p.readMyTerrain,
 	"03": g.leftoverTokens,
 	"04": playerTurn,
 	"05": chooseDice,
 	"06": SendInterrogation,
-	//"07": tobeImplemented,
-//	"08": tobeImplemented,
-//"09": tobeImplemented,
-	 "10": tokenInfoSwap,
-	 "11": remainingWinner,
+	"07": guessTokens,
+	"08": guessCorrect,
+	"09": guessIncorrect,
+	"10": tokenInfoSwap,
+	"11": remainingWinner,
 }
 
 func (gm *Game) playerNO(args string) string{
@@ -74,15 +74,12 @@ func tokenInfoSwap(args string) string{
 }
 
 func remainingWinner(args string) string{
-	fmt.Println("string-"+args)
 	message := strings.Split(args[3:], ",")
 
 	fmt.Printf("%s wins as the only remaining player. All others have guessed incorrectly and been disqualified. The treasures are located at %s and %s\n",
 		message[0], message[1], message[2])
 		return ""
 }
-
-
 
 func playerTurn(args string) string{
 	stringSlice := strings.Split(args, ":")
@@ -131,6 +128,36 @@ func SendInterrogation(args string) string{
 		stringSlice2[4],stringSlice2[3])
 		return ""
 }
+
+func guessTokens(playerNumber string) string{
+fmt.Println("fromPn-"+fromPN)
+		var first_token string
+		var second_token string
+		fmt.Println("Choose first token: ")
+		fmt.Scanf("%s", &first_token)
+		fmt.Println("Choose second token: ")
+		fmt.Scanf("%s", &second_token)
+		var temp string = "07:P"+playerNumber+","+first_token+","+second_token
+		return temp
+}
+
+func guessCorrect(args string) string{
+	stringSlice := strings.Split(args, ":")
+		stringSlice2 := strings.Split(stringSlice[1], ",")
+		fmt.Printf("Player %s is correct! They have won the game.\n",
+		stringSlice2[0])
+		fmt.Printf("The treasures were located at %s and %s.\n",
+		stringSlice2[1],stringSlice2[2])
+	return ""
+}
+
+func guessIncorrect(args string) string {
+	message := strings.Split(args, ":")
+	fmt.Printf("Player %s is submitting a guess at the treasure locations!. Player %s was wrong. They are now disqualified from winning.\n",
+		message[1],message[1])
+		return ""
+}
+
 // Reads from "toPN" named pipe
 func readFromPipe(fd *os.File, err error) string {
 	if err != nil {
@@ -159,7 +186,6 @@ func writeToPipe(fd1 *os.File, err1 error, args string) {
 	if err1 != nil {
 		fmt.Errorf(err1.Error())
 	}
-	fmt.Println("string-"+args)
 	fd1.Write([]byte(args))
 }
 
