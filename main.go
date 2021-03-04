@@ -85,6 +85,12 @@ func remainingWinner(args string) string {
 func playerTurn(args string) string {
 	stringSlice := strings.Split(args, ":")
 	stringSlice2 := strings.Split(stringSlice[1], ",")
+	fmt.Println("\n")
+	fmt.Println("Player "+stringSlice2[0][1:]+" has rolled "+stringSlice2[1]+","+stringSlice2[2]+","+stringSlice2[3])
+	if("P"+strconv.Itoa(p.no)!=stringSlice2[0]){
+	
+		return "";
+	}
 	var response string
 	fmt.Println("Choose any two dice options from the following or choose A")
 	for j := 1; j < len(stringSlice2); j++ {
@@ -142,7 +148,7 @@ func guessTokens(playerNumber string) string {
 	fmt.Scanf("%s", &first_token)
 	fmt.Println("Choose second token: ")
 	fmt.Scanf("%s", &second_token)
-	var temp string = "07:P" + playerNumber + "," + first_token + "," + second_token
+	var temp string = "07:P" + strconv.Itoa(p.no) + "," + first_token + "," + second_token
 	return temp
 }
 
