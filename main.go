@@ -185,6 +185,7 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 	playerNumber, _ := reader.ReadString('\n')
 	playerNumber = strings.Replace(playerNumber, "\n", "", -1)
+	p.no, _ = strconv.Atoi(playerNumber)
 	toPN += playerNumber
 	fromPN += playerNumber
 	fmt.Println(toPN, fromPN)
