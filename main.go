@@ -85,12 +85,18 @@ func remainingWinner(args string) string {
 func playerTurn(args string) string {
 	stringSlice := strings.Split(args, ":")
 	stringSlice2 := strings.Split(stringSlice[1], ",")
-
+	var response string
 	fmt.Println("Choose any two dice options from the following or choose A")
 	for j := 1; j < len(stringSlice2); j++ {
 		fmt.Println(stringSlice2[j])
 	}
-	return ""
+	fmt.Println("Would you like to guess? Y/N")
+	fmt.Scanln(&response)
+	if response == "Y" || response == "y" {
+		return guessTokens("")
+	}
+	return chooseDice(args)
+
 }
 
 func chooseDice(args string) string {
