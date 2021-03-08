@@ -68,6 +68,7 @@ func (pl *Player) readMyTerrain(args string) string {
 
 func (gm *Game) leftoverTokens(args string) string {
 	gm.leftTokens = strings.Split(args[3:], ",")
+	fmt.Println("Leftover tokens: ", gm.leftTokens)
 	return ""
 }
 
@@ -213,7 +214,7 @@ func main() {
 	}
 	rd := bufio.NewReader(fd)
 
-	fd1, err1 := os.OpenFile(fromPN, os.O_RDWR, 0600) // opens fromPN named pipe
+	fd1, err1 := os.OpenFile(fromPN, os.O_WRONLY, 0) // opens fromPN named pipe
 	if err1 != nil {
 		fmt.Errorf(err1.Error())
 	}
