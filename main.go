@@ -24,8 +24,10 @@ type Game struct {
 
 var p Player
 var g Game
+var opponents []Player
 var toPN string = "/tmp/betatoP"     // "toP + player number" when we (I) understand how we get that
 var fromPN string = "/tmp/betafromP" // same here "fromP + player number"
+var tokenMap = [24]string{"1F", "2F", "3F", "4F", "5F", "6F", "7F", "8F", "1B", "2B", "3B", "4B", "5B", "6B", "7B", "8B", "1M", "2M", "3M", "4M", "5M", "6M", "7M", "8M"}
 
 type fn func(string) string
 
@@ -57,7 +59,17 @@ func (gm *Game) playerNO(args string) string {
 	gm.totalPlayers, _ = strconv.Atoi(args[len(args)-1:])
 	gm.activePlayers = gm.totalPlayers
 	fmt.Printf("There are %d players\n", gm.totalPlayers)
+	initOpponents(gm.totalPlayers)
 	return ""
+}
+
+func initOpponents(totalPlayers int) {
+	for i := 1; i <= totalPlayers; i++ {
+		if strconv.Itoa(i) != p.no {
+			player := Player{no: strconv.Itoa(i)}
+			opponents = append(opponents, player)
+		}
+	}
 }
 
 func (pl *Player) readMyTerrain(args string) string {
@@ -68,7 +80,11 @@ func (pl *Player) readMyTerrain(args string) string {
 
 func (gm *Game) leftoverTokens(args string) string {
 	gm.leftTokens = strings.Split(args[3:], ",")
-	fmt.Println("Leftover tokens: ", gm.leftTokens)
+	fmt.Printf("Leftover tokens: ")
+	for _, x := range gm.leftTokens {
+		fmt.Printf(x + " ")
+	}
+	fmt.Printf("\n")
 	return ""
 }
 
@@ -94,50 +110,129 @@ func remainingWinner(args string) string {
 func playerTurn(args string) string {
 	stringSlice := strings.Split(args, ":")
 	stringSlice2 := strings.Split(stringSlice[1], ",")
-	fmt.Println("\n")
 	fmt.Println("Player " + stringSlice2[0][1:] + " has rolled " + stringSlice2[1] + "," + stringSlice2[2] + "," + stringSlice2[3])
 	if "P"+p.no != stringSlice2[0] {
 
 		return ""
 	}
 	var response string
-	fmt.Println("Choose any two dice options from the following or choose A")
-	for j := 1; j < len(stringSlice2); j++ {
-		fmt.Println(stringSlice2[j])
-	}
 	fmt.Println("Would you like to guess? Y/N")
 	fmt.Scanln(&response)
-	if response == "Y" || response == "y" {
+	response = strings.ToUpper(response)
+	for response != "Y" && response != "N" {
+		fmt.Println("Would you like to guess? Y/N")
+		fmt.Scanln(&response)
+		response = strings.ToUpper(response)
+	}
+	if response == "Y" {
 		return guessTokens("")
+	}
+	fmt.Println("Choose any two dice options from the following or choose A")
+	for j := 1; j < len(stringSlice2); j++ {
+		fmt.Printf("%d. %s\n", j, stringSlice2[j])
 	}
 	return chooseDice(args)
 
 }
 
+func terrainParser(t1 string, t2 string) string {
+	terrainMap := map[string]string{"B": "Beach", "F": "Forest", "M": "Mountain", "A": "All terrians"}
+	var t string
+	if t1 == "W" && t2 == "W" {
+		fmt.Println("Choose Terrian:")
+		for k, v := range terrainMap {
+			fmt.Printf("%s: %s\n", k, v)
+		}
+		fmt.Scanf("%s", &t)
+		t = strings.ToUpper(t)
+		_, found := terrainMap[t]
+		for !found {
+			fmt.Println("Invalid terrain, Choose Terrian:")
+			fmt.Scanf("%s", &t)
+			t = strings.ToUpper(t)
+			_, found = terrainMap[t]
+		}
+	} else if t1 == "W" && t2 != "W" {
+		fmt.Println("Choose Terrian:")
+		fmt.Printf("%s: %s\n", t2, terrainMap[t2])
+		fmt.Printf("A: %s\n", terrainMap["A"])
+		fmt.Scanf("%s", &t)
+		t = strings.ToUpper(t)
+		for t != "A" && t != t2 {
+			fmt.Println("Invalid terrain, Choose Terrian:")
+			fmt.Scanf("%s", &t)
+			t = strings.ToUpper(t)
+		}
+	} else if t1 != "W" && t2 == "W" {
+		fmt.Println("Choose Terrian:")
+		fmt.Printf("%s: %s\n", t1, terrainMap[t1])
+		fmt.Printf("A: %s\n", terrainMap["A"])
+		fmt.Scanf("%s", &t)
+		t = strings.ToUpper(t)
+		for t != "A" && t != t1 {
+			fmt.Println("Invalid terrain, Choose Terrian:")
+			fmt.Scanf("%s", &t)
+			t = strings.ToUpper(t)
+		}
+	} else if t1 == t2 {
+		return t1
+	}
+	return "A"
+}
+
 func chooseDice(args string) string {
+	rolledDice := strings.Split(args[3:], ",")
+	var n int
+	var die1, die2, terrain, player string
 
-	var Dice1 string
-	fmt.Println("Choose first dice option")
-	fmt.Scanf("%s", &Dice1)
+	fmt.Println("Choose first die by number")
+	_, err := fmt.Scanf("%d", &n)
+	for err != nil || n > 3 || n < 1 {
+		if err != nil {
+			fmt.Println("Please enter a valid number!")
+		} else {
+			fmt.Println("Out of range, choose first die by number")
+		}
+		_, err = fmt.Scanf("%d", &n)
+	}
+	die1 = rolledDice[n]
 
-	var Dice2 string
-	fmt.Println("Choose second dice option")
-	fmt.Scanf("%s", &Dice2)
+	fmt.Println("Choose second die by number")
+	_, err = fmt.Scanf("%d", &n)
+	for err != nil || n > 3 || n < 1 || rolledDice[n] == die1 {
+		if err != nil {
+			fmt.Println("Please enter a valid number!")
+		} else if rolledDice[n] == die1 {
+			fmt.Println("Die has chosen, enter another number for second die")
+		} else {
+			fmt.Println("Out of range, choose second die by number")
+		}
+		_, err = fmt.Scanf("%d", &n)
+	}
+	die2 = rolledDice[n]
 
-	var Terrain string
-	var Player string
+	terrain = terrainParser(string(die1[2]), string(die2[2]))
 
-	fmt.Println("Choose Terrian")
-	fmt.Scanf("%s", &Terrain)
-	fmt.Println("Choose Player that you want to interrogate")
-	fmt.Scanf("%s", &Player)
+	fmt.Println("Choose Player that you want to interrogate by number")
+	for i, opponent := range opponents {
+		fmt.Printf("%d. Player%s\n", i+1, opponent.no)
+	}
+	_, err = fmt.Scanf("%d", &n)
+	for err != nil || n > len(opponents) || n < 1 {
+		if err != nil {
+			fmt.Println("Please enter a valid number!")
+		} else {
+			fmt.Println("Out of range, choose Player that you want to interrogate by number")
+		}
+		_, err = fmt.Scanf("%d", &n)
+	}
+	player = opponents[n-1].no
 
-	var temp string = "05:" + strings.ToUpper(Dice1) + "," + strings.ToUpper(Dice2) + "," + strings.ToUpper(Terrain) + ",P" + Player
+	var temp string = "05:" + die1 + "," + die2 + "," + terrain + ",P" + player
 	return temp
 }
 
 func SendInterrogation(args string) string {
-
 	stringSlice := strings.Split(args, ":")
 	stringSlice2 := strings.Split(stringSlice[1], ",")
 
@@ -149,14 +244,33 @@ func SendInterrogation(args string) string {
 	return ""
 }
 
+func isValidToken(token string) bool {
+	for _, t := range tokenMap {
+		if strings.ToUpper(token) == t {
+			return true
+		}
+	}
+	return false
+}
+
 func guessTokens(playerNumber string) string {
-	fmt.Println("fromPn-" + fromPN)
+	//fmt.Println("fromPn-" + fromPN)
 	var first_token string
 	var second_token string
+
 	fmt.Println("Choose first token: ")
 	fmt.Scanf("%s", &first_token)
+	for !isValidToken(first_token) {
+		fmt.Println("Invalid token, please choose the first token: ")
+		fmt.Scanf("%s", &first_token)
+	}
+
 	fmt.Println("Choose second token: ")
 	fmt.Scanf("%s", &second_token)
+	for !isValidToken(first_token) {
+		fmt.Println("Invalid token, please choose the second token: ")
+		fmt.Scanf("%s", &second_token)
+	}
 	var temp string = "07:P" + p.no + "," + strings.ToUpper(first_token) + "," + strings.ToUpper(second_token)
 	return temp
 }
@@ -224,7 +338,7 @@ func main() {
 		if serverSaid == "exit" {
 			break
 		}
-		playerReply := selectedFunction(functions[serverSaid[:2]], serverSaid)
+		playerReply := selectedFunction(functions[serverSaid[:2]], strings.TrimSpace(serverSaid))
 		if playerReply != "" {
 			writeToPipe(fd1, playerReply)
 		}
