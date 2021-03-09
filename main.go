@@ -11,7 +11,7 @@ import (
 
 // Player struct
 type Player struct {
-	no       int
+	no       string
 	terrains []string
 }
 
@@ -24,8 +24,8 @@ type Game struct {
 
 var p Player
 var g Game
-var toPN string = "/tmp/toP"     // "toP + player number" when we (I) understand how we get that
-var fromPN string = "/tmp/fromP" // same here "fromP + player number"
+var toPN string = "/tmp/betatoP"     // "toP + player number" when we (I) understand how we get that
+var fromPN string = "/tmp/betafromP" // same here "fromP + player number"
 
 type fn func(string) string
 
@@ -45,28 +45,37 @@ var functions = map[string]fn{
 	"09": guessIncorrect,
 	"10": tokenInfoSwap,
 	"11": remainingWinner,
+	"99": errorMsg,
+}
+
+func errorMsg(arg string) string {
+	fmt.Println(arg)
+	return ""
 }
 
 func (gm *Game) playerNO(args string) string {
 	gm.totalPlayers, _ = strconv.Atoi(args[len(args)-1:])
 	gm.activePlayers = gm.totalPlayers
+	fmt.Printf("There are %d players\n", gm.totalPlayers)
 	return ""
 }
 
 func (pl *Player) readMyTerrain(args string) string {
 	pl.terrains = strings.Split(args[3:], ",")
+	fmt.Println("Terrains are:" + strings.Join(pl.terrains, ", "))
 	return ""
 }
 
 func (gm *Game) leftoverTokens(args string) string {
 	gm.leftTokens = strings.Split(args[3:], ",")
+	fmt.Println("Leftover tokens: ", gm.leftTokens)
 	return ""
 }
 
 func tokenInfoSwap(args string) string {
 	message := strings.Split(args[3:], ",")
 
-	if string(message[0][1]) == strconv.Itoa(p.no) {
+	if string(message[0][1]) == p.no {
 		fmt.Printf("You let %s know you got a token %s\n", message[1], message[2])
 	} else {
 		fmt.Printf("You acknowledge %s got a token %s\n", message[0], message[2])
@@ -86,10 +95,10 @@ func playerTurn(args string) string {
 	stringSlice := strings.Split(args, ":")
 	stringSlice2 := strings.Split(stringSlice[1], ",")
 	fmt.Println("\n")
-	fmt.Println("Player "+stringSlice2[0][1:]+" has rolled "+stringSlice2[1]+","+stringSlice2[2]+","+stringSlice2[3])
-	if("P"+strconv.Itoa(p.no)!=stringSlice2[0]){
-	
-		return "";
+	fmt.Println("Player " + stringSlice2[0][1:] + " has rolled " + stringSlice2[1] + "," + stringSlice2[2] + "," + stringSlice2[3])
+	if "P"+p.no != stringSlice2[0] {
+
+		return ""
 	}
 	var response string
 	fmt.Println("Choose any two dice options from the following or choose A")
@@ -123,7 +132,7 @@ func chooseDice(args string) string {
 	fmt.Println("Choose Player that you want to interrogate")
 	fmt.Scanf("%s", &Player)
 
-	var temp string = "05:" + Dice1 + "," + Dice2 + "," + Terrain + ",P" + Player
+	var temp string = "05:" + strings.ToUpper(Dice1) + "," + strings.ToUpper(Dice2) + "," + strings.ToUpper(Terrain) + ",P" + Player
 	return temp
 }
 
@@ -148,7 +157,7 @@ func guessTokens(playerNumber string) string {
 	fmt.Scanf("%s", &first_token)
 	fmt.Println("Choose second token: ")
 	fmt.Scanf("%s", &second_token)
-	var temp string = "07:P" + strconv.Itoa(p.no) + "," + first_token + "," + second_token
+	var temp string = "07:P" + p.no + "," + strings.ToUpper(first_token) + "," + strings.ToUpper(second_token)
 	return temp
 }
 
@@ -181,9 +190,6 @@ func readFromPipe(fd *os.File, rd *bufio.Reader) string {
 	if len(buff) > 0 {
 		return buff
 	}
-	if err != nil {
-		fmt.Errorf(err.Error())
-	}
 	return ""
 }
 
@@ -197,7 +203,7 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 	playerNumber, _ := reader.ReadString('\n')
 	playerNumber = strings.Replace(playerNumber, "\n", "", -1)
-	p.no, _ = strconv.Atoi(playerNumber)
+	p.no = playerNumber
 	toPN += playerNumber
 	fromPN += playerNumber
 	fmt.Println(toPN, fromPN)
@@ -208,7 +214,7 @@ func main() {
 	}
 	rd := bufio.NewReader(fd)
 
-	fd1, err1 := os.OpenFile(fromPN, os.O_RDWR, 0600) // opens fromPN named pipe
+	fd1, err1 := os.OpenFile(fromPN, os.O_WRONLY, 0) // opens fromPN named pipe
 	if err1 != nil {
 		fmt.Errorf(err1.Error())
 	}
